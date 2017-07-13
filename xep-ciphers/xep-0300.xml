@@ -1,0 +1,405 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>Use of Cryptographic Hash Functions in XMPP</title>
+  <abstract>This document provides recommendations for the use of cryptographic hash functions in XMPP protocol extensions.</abstract>
+  &LEGALNOTICE;
+  <number>0300</number>
+  <status>Experimental</status>
+  <type>Standards Track</type>
+  <sig>Standards</sig>
+  <approver>Council</approver>
+  <dependencies>
+    <spec>XMPP Core</spec>
+  </dependencies>
+  <supersedes/>
+  <supersededby/>
+  <shortname>N/A</shortname>
+  &stpeter;
+  &mwild;
+  &ksmith;
+  &tobias;
+  <revision>
+    <version>0.5.1</version>
+    <date>2017-03-17</date>
+    <initials>fs</initials>
+    <remark><p>Use xs:base64Binary instead of xs:string in the schema</p></remark>
+  </revision>
+  <revision>
+    <version>0.5</version>
+    <date>2017-01-24</date>
+    <initials>tobias</initials>
+    <remark><p>Explicitly specify encoding format. Namespace version bump to urn:xmpp:hashes:2.</p></remark>
+  </revision>
+  <revision>
+    <version>0.4</version>
+    <date>2016-05-16</date>
+    <initials>tobias</initials>
+    <remark><p>Updating to current knowledge on security of algorithms. Adding SHA-3 and BLAKE families of hashes.</p></remark>
+  </revision>
+  <revision>
+    <version>0.3</version>
+    <date>2012-02-08</date>
+    <initials>psa</initials>
+    <remark><p>Modified XML structure to remove wrapper element; added recommendations for new XMPP extensions; softened recommendations for existing extensions.</p></remark>
+  </revision>
+  <revision>
+    <version>0.2</version>
+    <date>2011-12-05</date>
+    <initials>psa</initials>
+    <remark><p>Updated to reflect initial analysis of existing XMPP protocol extensions.</p></remark>
+  </revision>
+  <revision>
+    <version>0.1</version>
+    <date>2011-06-29</date>
+    <initials>psa</initials>
+    <remark><p>Initial published version.</p></remark>
+  </revision>
+  <revision>
+    <version>0.0.2</version>
+    <date>2011-06-22</date>
+    <initials>mw/ks/psa</initials>
+    <remark><p>Adjusted format to include multiple hashes in one element; modified namespace versioning rules to align with common practice; added service discovery features for various algorithms.</p></remark>
+  </revision>
+  <revision>
+    <version>0.0.1</version>
+    <date>2011-06-16</date>
+    <initials>psa</initials>
+    <remark><p>Rough draft based on list discussion.</p></remark>
+  </revision>
+</header>
+
+<section1 topic='Introduction' anchor='intro'>
+  <p>Various XMPP extensions make use of cryptographic hash functions, but they do so in different ways (e.g., some define XML elements and some define XML attributes) and often mandate support for different algorithms. The lack of a consistent approach to the use of cryptographic hash functions in XMPP extensions can lead to interoperability problems and security vulnerabilities. Therefore, this document recommends a common approach and XML element that can be re-used in any XMPP protocol extension.</p>
+</section1>
+
+<section1 topic='Requirements' anchor='reqs'>
+  <p>This extension is designed to meet the following criteria:</p>
+  <dl>
+    <di><dt>Agility</dt><dd>It is absolutely necessary to support more secure cryptographic hash functions as they become available, and to stop supporting less secure functions as they are deprecated.</dd></di>
+    <di><dt>Security</dt><dd>This document needs to be regularly maintained and revisited so that XMPP protocols are using the most up-to-date security technologies.</dd></di>
+    <di><dt>Reusability</dt><dd>The extension needs to be reusable in any XMPP protocol.</dd></di>
+  </dl>
+</section1>
+
+<section1 topic='XML Format' anchor='format'>
+  <p>This document defines a new XML element that can be used in any XMPP protocol extension. An example follows.</p>
+  <code><![CDATA[<hash xmlns='urn:xmpp:hashes:2' algo='sha-256'>2XarmwTlNxDAMkvymloX3S5+VbylNrJt/l5QyPa+YoU=</hash>]]></code>
+  <p>An XMPP protocol can include more than one instance of the &lt;hash/&gt; element, as long as each one has a different value for the 'algo' attribute:</p>
+  <code><![CDATA[<hash xmlns='urn:xmpp:hashes:2' algo='sha-1'>2AfMGH8O7UNPTvUVAM9aK13mpCY=</hash>
+<hash xmlns='urn:xmpp:hashes:2' algo='sha-256'>2XarmwTlNxDAMkvymloX3S5+VbylNrJt/l5QyPa+YoU=</hash>]]></code>
+  <p>The value of the 'algo' attribute MUST be one of the values from the &ianahashes; maintained by &IANA;, or one of the values
+  defined in the following table.</p>
+  <table caption='Additional Hash Function Textual Names'>
+    <tr>
+      <th>Hash Function Name</th>
+      <th>Reference</th>
+    </tr>
+    <tr>
+      <td>"sha3-256"</td>
+      <td><span class='ref'><link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions</link></span> <note>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions &lt;<link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>http://dx.doi.org/10.6028/NIST.FIPS.202</link>&gt;.</note></td>
+    </tr>
+    <tr>
+      <td>"sha3-512"</td>
+      <td><span class='ref'><link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions</link></span> <note>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions &lt;<link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>http://dx.doi.org/10.6028/NIST.FIPS.202</link>&gt;.</note></td>
+    </tr>
+    <tr>
+      <td>"blake2b-256"</td>
+      <td>&rfc7693;</td>
+    </tr>
+    <tr>
+      <td>"blake2b-512"</td>
+      <td>&rfc7693;</td>
+    </tr>
+  </table>
+  <p>The CDATA of the &lt;hash/&gt; element MUST conform to the base64Binary datatype <note>See &lt;<link url='http://www.w3.org/TR/xmlschema-2/#base64Binary'>http://www.w3.org/TR/xmlschema-2/#base64Binary</link>&gt;.</note> and thus be encoded in accordance with Section 6.8 of &rfc2045;, which recommends that base64 data should have lines limited to at most 76 characters in length. However, any whitespace characters (e.g., '\r' and '\n') MUST be ignored.</p>
+</section1>
+
+<section1 topic='Hash Functions' anchor='hashes'>
+  <section2 topic='MD2' anchor='hashes-md2'>
+    <p>The MD2 algorithm is not used in any XMPP protocols and has been deprecated by the IETF (see &rfc6149;).</p>
+  </section2>
+  <section2 topic='MD4' anchor='hashes-md4'>
+    <p>The MD4 algorithm is not used in any XMPP protocols and has been deprecated by the IETF (see &rfc6150;).</p>
+  </section2>
+  <section2 topic='MD5' anchor='hashes-md5'>
+    <p>The MD5 algorithm was commonly used in earlier generations of Internet technologies. As explained in &rfc6151;, the MD5 algorithm "is no longer acceptable where collision resistance is required" (such as in digital signatures) and "new protocol designs should not employ HMAC-MD5" either.</p>
+    <p>The currently known best attack against the pre-image resistance property of the MD5 algorithm is slightly better than the generic attack and was released 2009 <note>Yu Sasaki and Kazumaro Aoki, "Finding preimages in full MD5 faster than exhaustive search" &lt;<link url='https://doi.org/10.1007/978-3-642-01001-9_8'>https://doi.org/10.1007/978-3-642-01001-9_8</link>&gt;.</note>.</p>
+    <p>The primary use of MD5 in XMPP protocols is &xep0096;, which will be obsoleted by &xep0234;.</p>
+  </section2>
+  <section2 topic='SHA-0' anchor='hashes-sha0'>
+    <p>The SHA-0 algorithm was developed by the U.S. National Security Agency and first published in 1993. It was never widely deployed and is not used in any XMPP protocols.</p>
+  </section2>
+  <section2 topic='SHA-1' anchor='hashes-sha1'>
+    <p>The SHA-1 algorithm was developed by the U.S. National Security Agency and first published in 1995 to fix problems with SHA-0. The SHA-1 algorithm is currently the most widely-deployed hash function. As described in &rfc4270; in 2005, attacks have been found against the collision resistance property of SHA-1. &rfc6194; notes that as of 2011 no published results indicate improvement upon those attacks. In addition, RFC 6194 notes that "[t]here are no known pre-image or second pre-image attacks that are specific to the full round SHA-1 algorithm".  Furthermore, there is no indication that attacks on SHA-1 can be extended to HMAC-SHA-1.  Nevertheless, the U.S. National Institute of Standards and Technology (NIST) has recommended that SHA-1 not be used for generating digital signatures after December 31, 2010.</p>
+    <p>In fall 2015 the SHA-1 collision cost has been estimated between 75K$ to 120K$ <note>The SHAppening: freestart collisions for SHA-1 &lt;<link url='https://sites.google.com/site/itstheshappening/'>https://sites.google.com/site/itstheshappening/</link>&gt;.</note>.</p>
+    <p>The SHA-1 algorithm is used in a number of XMPP protocols. See <link url='#existing'>Analysis of Existing XMPP Extensions</link> for details.</p>
+  </section2>
+  <section2 topic='SHA-2' anchor='hashes-sha2'>
+    <p>The SHA-2 family of algorithms (SHA-224, SHA-256, SHA-384, and SHA-512) was developed by the U.S. National Security Agency and first published in 2001. Because SHA-2 is somewhat similar to SHA-1, it is thought that the security flaws with SHA-1 described above could be extended to SHA-2 (although no such attacks have yet been found on the full-round SHA-2 algorithms).</p>
+  </section2>
+  <section2 topic='SHA-3' anchor='hashes-sha3'>
+    <p>The SHA-3 family of algorithms (SHA3-224, SHA3-256, SHA3-384, and SHA3-512) is based on the Keccak algortihm developed by Guido Bertoni, Joan Daemen, Michaël Peeters, and Gilles Van Assche, and was pubished by NIST on August 5, 2015 in <span class='ref'><link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions</link></span> <note>FIPS PUB 202: SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions &lt;<link url='http://dx.doi.org/10.6028/NIST.FIPS.202'>http://dx.doi.org/10.6028/NIST.FIPS.202</link>&gt;.</note> after a public hash function competition.</p>
+  </section2>
+  <section2 topic='BLAKE2'  anchor='hashes-blake2'>
+    <p>The BLAKE2 family of algorithms was designed by Jean-Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, and Christian Winnerlein. It is described in &rfc7693; and is designed to be highly secure and run well on both software and hardware platforms.</p>
+  </section2>
+</section1>
+
+<section1 topic='Algorithm Recommendations' anchor='recommendations'>
+  <p>Support for version 1 of the 'urn:xmpp:hashes' namespace implies the following:</p>
+  <table caption='Algorithm Recommendations'>
+    <tr>
+      <th>Algorithm</th>
+      <th>Digest Size</th>
+      <th>Support</th>
+    </tr>
+    <tr>
+      <td>MD2</td>
+      <td>128 bits</td>
+      <td>MUST NOT</td>
+    </tr>
+    <tr>
+      <td>MD4</td>
+      <td>128 bits</td>
+      <td>MUST NOT</td>
+    </tr>
+    <tr>
+      <td>MD5</td>
+      <td>128 bit</td>
+      <td>MUST NOT</td>
+    </tr>
+    <tr>
+      <td>SHA-1</td>
+      <td>160 bits</td>
+      <td>SHOULD NOT</td>
+    </tr>
+    <tr>
+      <td>SHA-256</td>
+      <td>256 bits</td>
+      <td>MUST</td>
+    </tr>
+    <tr>
+      <td>SHA-512</td>
+      <td>512 bits</td>
+      <td>SHOULD</td>
+    </tr>
+    <tr>
+      <td>SHA3-256</td>
+      <td>256 bits</td>
+      <td>MUST</td>
+    </tr>
+    <tr>
+      <td>SHA3-512</td>
+      <td>512 bits</td>
+      <td>SHOULD</td>
+    </tr>
+    <tr>
+      <td>BLAKE2b256</td>
+      <td>256 bits</td>
+      <td>MUST</td>
+    </tr>
+    <tr>
+      <td>BLAKE2b512</td>
+      <td>512 bits</td>
+      <td>SHOULD</td>
+    </tr>
+  </table>
+  <p>These recommendations ought to be reviewed yearly by the &COUNCIL;.</p>
+</section1>
+<!-- http://dx.doi.org/10.6028/NIST.FIPS.202 -->
+<section1 topic='Determining Support' anchor='disco'>
+  <p>If an entity supports the protocol defined herein, it MUST report that by including a &xep0030; feature of "urn:xmpp:hashes:2" in response to disco#info requests, along with one service discovery feature for each algorithm it supports:</p>
+  <example caption="Service discovery information request"><![CDATA[
+<iq from='romeo@montague.lit/orchard'
+    id='uw72g176'
+    to='juliet@capulet.lit/balcony'
+    type='get'>
+  <query xmlns='http://jabber.org/protocol/disco#info'/>
+</iq>
+]]></example>
+  <example caption="Service discovery information response"><![CDATA[
+<iq from='juliet@capulet.lit/balcony'
+    id='uw72g176'
+    to='romeo@montague.lit/orchard'
+    type='result'>
+  <query xmlns='http://jabber.org/protocol/disco#info'>
+    <feature var='urn:xmpp:hashes:2'/>
+    <feature var='urn:xmpp:hash-function-text-names:sha-256'/>
+    <feature var='urn:xmpp:hash-function-text-names:sha3-256'/>
+  </query>
+</iq>
+]]></example>
+  <p>In order for an application to determine whether an entity supports this protocol, where possible it SHOULD use the dynamic, presence-based profile of service discovery defined in &xep0115;. However, if an application has not received entity capabilities information from an entity, it SHOULD use explicit service discovery instead.</p>
+</section1>
+
+<section1 topic='Recommendations for New XMPP Extensions' anchor='new'>
+  <p>The XSF is strongly encouraged to incorporate hash agility into new XMPP extensions that it develops by mandating re-use of the protocol defined in this specification (instead of hash elements or attributes specific to each extension).</p>
+</section1>
+
+<section1 topic='Analysis of Existing XMPP Extensions' anchor='existing'>
+  <p>As mentioned, several existing XMPP extensions make use of the SHA-1 algorithm. This section analyzes those extensions. The final subsection provides recommendations.</p>
+  <section2 topic='XEP-0065' anchor='existing-xep0065'>
+    <p>Both &xep0065; and &xep0260; use SHA-1 to hash the Stream ID, Requester's JID, and Target's JID, and this hash can be communicated via the 'dstaddr' attribute. Although this usage is not security-critical, currently it has no agility to specify newer algorithms. Because the hash is communicated by means of an attribute, it cannot directly use the extension defined in this specification.</p>
+  </section2>
+  <section2 topic='XEP-0084' anchor='existing-xep0065'>
+    <p>In &xep0084;, the &xep0060; ItemId for the metadata node is the SHA-1 hash of the image data for the "image/png" media type. There is no hash agility for this usage. Although attacks against the collision resistance property could potentially result in confusion over the avatar for a user, the fact that avatars cannot be uploaded without authentication as the node owner or authorization as a node publisher reduces the practicality of attacks. In addition, XEP-0084 ought to be updated to specify that avatars must not be compared across JIDs.</p>
+  </section2>
+  <section2 topic='XEP-0115' anchor='existing-xep0115'>
+    <p>&xep0115; typically uses SHA-1 to compute the verification string, however hash agility is supported by use of the 'hash' attribute. Because the hash is communicated by means of an attribute, it cannot directly use the extension defined in this specification.</p>
+  </section2>
+  <section2 topic='XEP-0124' anchor='existing-xep0124'>
+    <p>&xep0124; uses SHA-1 to generate the key sequence used to secure sessions that are not protected via SSL/TLS. Because these keys are ephemeral, it is unlikely that an attacker could reproduce or poison the key sequence quickly enough to successfully attack the session. However, attackers can be discouraged more significantly by protecting sessions with SSL/TLS (indeed, it is unclear how widely the key sequence feature is implemented). That said, this use of SHA-1 in BOSH does not support hash agility.</p>
+  </section2>
+  <section2 topic='XEP-0153' anchor='existing-xep0153'>
+    <p>&xep0153; is historical but still widely used. Probably it is more valuable to modify <cite>XEP-0084</cite> so that it supports hash agility.</p>
+  </section2>
+  <section2 topic='XEP-0174' anchor='existing-xep0174'>
+    <p>&xep0174; uses SHA-1 to hash the avatar image (i.e., the "phsh" field) advertised in the DNS TXT record for a user, mirroring the usage from XEP-0115. The "hash" field can be used to specify alternative hash algorithms, and thus supports hash agility. However, in practice it is likely that only SHA-1 is implemented. Because the hash is represented in a DNS TXT record, it cannot directly use the extension defined in this specification.</p>
+  </section2>
+  <section2 topic='XEP-0231' anchor='existing-xep0231'>
+    <p>&xep0231; supports hash agility through the structure of values for the 'cid' attribute, but does not mandate support for any particular algorithm.</p>
+  </section2>
+  <section2 topic='XEP-0234' anchor='existing-xep0234'>
+    <p>&xep0234; supports hash agility in its application format to allow to verify integrity of transferred files. It does not mandate support for any particular algorithm.</p>
+  </section2>
+  <section2 topic='Recommendations' anchor='existing-recommendations'>
+    <p>Of the foregoing, the use in <cite>XEP-0115</cite> has the most significant security implications. However, there are other security issues with <cite>XEP-0115</cite> that make it likely to be replaced in a more wholesale fashion. Although it would be desirable for all XMPP extensions that use cryptographic hashes to incorporate hash agility, realistically this is difficult to achieve after the fact. For now, the XSF is encouraged to focus on new protocols (e.g., XEP-0234 and a replacement for XEP-0115 if there is consensus to work on the latter) rather than spending effort on migrating its existing uses of SHA-1 to the SHA-2 family of algorithms, and to the SHA-3 family when available. Naturally, these priorities might change if XMPP technologies experience significant attacks on existing extensions that use SHA-1.</p>
+  </section2>
+</section1>
+
+<section1 topic='Security Considerations' anchor='security'>
+  <p>This entire document discusses security.</p>
+</section1>
+
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>This document requires no interaction with the IANA. However, it reuses entries from the relevant IANA registry.</p>
+</section1>
+
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <section2 topic='Protocol Namespaces' anchor='registrar-ns'>
+    <p>This specification defines the following XML namespace:</p>
+    <ul>
+      <li>urn:xmpp:hashes:2</li>
+    </ul>
+    <p>The &REGISTRAR; shall include the foregoing namespace in its registry at &NAMESPACES;, as governed by &xep0053;.</p>
+  </section2>
+  <section2 topic='Protocol Versioning' anchor='registrar-versioning'>
+    &NSVER;
+  </section2>
+  <section2 topic='Service Discovery Features' anchor='registrar-features'>
+    <p>An entity SHOULD provide one service discovery feature for each algorithm it supports. Ideally these features would be of the form "urn:iana:hash-function-text-names:foo" (where "foo" is the name of an algorithm registered with the IANA); however there is no urn:iana namespace at present. Until there is, we use features of the form "urn:xmpp:hash-function-text-names:foo" instead. Therefore the registry submission is as follows.</p>
+    <code caption='Registry Submission'><![CDATA[
+<var>
+  <name>urn:xmpp:hash-function-text-names:md5</name>
+  <desc>Support for the MD5 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha-1</name>
+  <desc>Support for the SHA-1 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha-224</name>
+  <desc>Support for the SHA-224 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha-256</name>
+  <desc>Support for the SHA-256 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha-384</name>
+  <desc>Support for the SHA-384 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha-512</name>
+  <desc>Support for the SHA-512 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha3-224</name>
+  <desc>Support for the SHA3-224 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha3-256</name>
+  <desc>Support for the SHA3-256 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha3-384</name>
+  <desc>Support for the SHA3-384 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:sha3-512</name>
+  <desc>Support for the SHA3-512 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+
+<var>
+  <name>urn:xmpp:hash-function-text-names:id-blake2b160</name>
+  <desc>Support for the BLAKE2b-160 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:id-blake2b256</name>
+  <desc>Support for the BLAKE2b-256 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:id-blake2b384</name>
+  <desc>Support for the BLAKE2b-384 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+<var>
+  <name>urn:xmpp:hash-function-text-names:id-blake2b512</name>
+  <desc>Support for the BLAKE2b-512 hashing algorithm</desc>
+  <doc>XEP-0300</doc>
+</var>
+]]></code>
+  </section2>
+</section1>
+
+<section1 topic='XML Schema' anchor='schema'>
+  <code><![CDATA[
+<?xml version='1.0' encoding='UTF-8'?>
+
+<xs:schema
+    xmlns:xs='http://www.w3.org/2001/XMLSchema'
+    targetNamespace='urn:xmpp:hashes:2'
+    xmlns='urn:xmpp:hashes:2'
+    elementFormDefault='qualified'>
+
+  <xs:element name='hash'>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base='xs:base64Binary'>
+          <xs:attribute name='algo' type='xs:NCName' use='required'/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
+]]></code>
+</section1>
+
+<section1 topic='Acknowledgements' anchor='ack'>
+  <p>Thanks to Dave Cridland, Waqas Hussain, Glenn Maynard, Remko
+  Tronçon, and Christian Schudt for their input.</p>
+</section1>
+
+</xep>
