@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE xep SYSTEM 'xep.dtd' [
+  <!ENTITY % ents SYSTEM 'xep.ent'>
+%ents;
+]>
+<?xml-stylesheet type='text/xsl' href='xep.xsl'?>
+<xep>
+<header>
+  <title>Identity Keys</title>
+  <abstract>This specification proposes the use of an OpenPGP key (TODO: allow other crypto key types such as X.509 certificates) as a single per-account identity key which can be used to simplify authentication of keys in multi-device end-to-end encryption.
+            This is done by using the identity key to create a signature over a list of subordinate keys to declare those as subordinate keys which can be transitively trusted after a contact verified the authenticity of the identity key.
+  </abstract>
+  &LEGALNOTICE;
+  <number>xxxx</number>
+  <status>ProtoXEP</status>
+  <type>Standards Track</type>
+  <sig>Standards</sig>
+  <approver>Council</approver>
+  <dependencies>
+    <spec>XMPP Core</spec>
+    <spec>XEP-0001</spec>
+    <spec>Etc.</spec>
+  </dependencies>
+  <supersedes/>
+  <supersededby/>
+  <shortname>IKey</shortname>
+  &paulschaub;
+  <revision>
+    <version>0.0.1</version>
+    <date>2020-09-25</date>
+    <initials>ps</initials>
+    <remark><p>First draft.</p></remark>
+  </revision>
+</header>
+<section1 topic='Introduction' anchor='intro'>
+  <p>End-to-end encryption without authentication of involved keys through the user can only provide protection against passive attacks.
+     Without users manually verifying their own and contacts encryption keys (eg. by comparing fingerprints over an external channel for example by as scanning QR-codes) an attacker could introduce a rogue key which could breach the confidentiality of the conversation.</p>
+  <p>As it has become common practice that every user uses multiple devices to participate in encrypted conversations, the amount of involved end-to-end encryption keys increases.
+     This presents users with the challenge to constantly keep up with which keys belong in the pool of "good" keys and which might be rogue keys.
+     It is therefore worthwhile to come up with solutions that simplify the key verification process.</p>
+  <p>This specification proposes the use of a single OpenPGP key as a per-account identity key. 
+     This key is used to certify the set of all encryption keys of the user by signing a list of active device keys.
+     This list and the signature is then published along with the identity key to a pubsub node.</p>
+  <p>This simplifies the process of fingerprint verification, so that only the identity key has to be authenticated.</p>
+</section1>
+<section1 topic='Requirements' anchor='reqs'>
+  <p>STRONGLY RECOMMENDED.</p>
+</section1>
+<section1 topic='Glossary' anchor='glossary'>
+  <p>OPTIONAL.</p>
+  <dl>
+    <di>
+      <dt>identity key</dt>
+      <dd>A designated OpenPGP key <tt>IK</tt> which is used to authenticate subordinate keys <tt>SK</tt> as such.</dd>
+    </di>
+    <di>
+      <dt>&lt;ikey/&gt; element</dt>
+      <dd>Root element of name <tt>ikey</tt> with namespace <tt>urn:xmpp:ikey:0</tt> which holds an attribute <tt>type</tt> specifying the type of used identity key, one <tt>signed</tt>, one <tt>superordinate</tt> and one <tt>proof</tt> child element.</dd>
+    </di>
+    <di>
+      <dt>&lt;superordinate/&gt; element</dt>
+      <dd>An element that holds the users identity key <tt>IK</tt>.</dd>
+    </di>
+    <di>
+      <dt>&lt;signed/&gt; element</dt>
+      <dd>An element that holds the utf8 encoded string representation <tt>E'</tt> of a <tt>subordinates</tt> element <tt>E</tt> as base64 encoded text.</dd>
+    </di>
+    <di>
+      <dt>&lt;subordinates/&gt; element</dt>
+      <dd>An element of name <tt>subordinates</tt> with the namespace <tt>urn:xmpp:ikey:0</tt> which holds an attribute <tt>jid</tt> with the users bare jid, as well as an attribute <tt>timestamp</tt> which contains the exact date and time of the signature creation, formatted according to &xep0082; and a list of <tt>sub</tt> child elements.</dd>
+    </di>
+    <di>
+      <dt>&lt;sub/&gt; element</dt>
+      <dd>An element that describes a subordinate key <tt>SK</tt>. 
+          It holds an attribute <tt>uri</tt> which points to a pubsub node or item where the key can be obtained, as well as an attribute <tt>fpr</tt> which contains the subordinate keys cryptographic fingerprint.</dd>
+    </di>
+    <di>
+      <dt>&lt;proof/&gt; element</dt>
+      <dd>An element that contains the base64 encoded detached signature <tt>S</tt> which was made by the identity key <tt>IK</tt> over the utf8 encoded string representation <tt>E'</tt> of the <tt>subordinates</tt> element <tt>E</tt>.</dd>
+    </di>
+  </dl>
+</section1>
+<section1 topic='Use Cases' anchor='usecases'>
+  <p>STRONGLY RECOMMENDED.</p>
+  <example caption='User assembles a list of subordinate keys'><![CDATA[
+<subordinates xmlns='urn:xmpp:ikey:0' 
+              jid='juliet@capulet.lit' 
+              stamp='2020-09-25T18:10:26.296+00:00'>
+  <sub uri='xmpp:juliet@capulet.lit?;node=urn:xmpp:openpgp:0:public-keys:1357B01865B2503C18453D208CAC2A9678548E35;item=2020-01-21T10:46:21Z' 
+       fpr='1357B01865B2503C18453D208CAC2A9678548E35'/>
+  <sub uri='xmpp:juliet@capulet.lit?;node=urn:xmpp:omemo:1:bundles;item=31415' 
+       fpr='e64dc9166dd34db64c9247bd502c5969e365a98f3aa41c87247d120487fdd32f'/>
+  <sub uri='xmpp:juliet@capulet.lit?;node=eu.siacs.conversations.axolotl.bundles:31415' 
+       fpr='e64dc9166dd34db64c9247bd502c5969e365a98f3aa41c87247d120487fdd32f'/>
+</subordinates>
+]]></example>
+  <example caption='The complete ikey element containing the superordinate key, the list of subordinates encoded in the signed element and the proof element containing the signature'><![CDATA[
+<ikey xmlns='urn:xmpp:ikey:0' type='OX'>
+  <superordinate>
+      mFIEX24ykhMIKoZIzj0DAQcCAwTBJJKEyyU1bu+kf2Oq0fdY26SOnRELpPgm1pp4Uq9SKR4KDUP4
+      yykT+LDBLZwijbmPpSEEJ0qllLa7G3Mz7OIDtBd4bXBwOmp1bGlldEBjYXB1bGV0LmxpdIh1BBMT
+      CgAdBQJfbjKSAhsDBRYCAwEABAsJCAcFFQoJCAsCHgEACgkQEs9jFvIGSKss0wD+L7CTu/L3iwrK
+      MwcHkaNM5tKs/5SaCBDZFwCoFtR7ECIA/2HGcEZ6SollVaUEt6za2B8D8a02n18jHCSA07uDdSnc
+  </superordinate>
+  <signed>
+      PHN1Ym9yZGluYXRlcyB4bWxucz0ndXJuOnhtcHA6aWtleTowJyBqaWQ9J2p1bGlldEBjYXB1bGV0
+      LmxpdCcgc3RhbXA9JzIwMjAtMDktMjVUMTg6MTA6MjYuMjk2KzAwOjAwJz48c3ViIHVyaT0neG1w
+      cDpqdWxpZXRAY2FwdWxldC5saXQ/O25vZGU9dXJuOnhtcHA6b3BlbnBncDowOnB1YmxpYy1rZXlz
+      OjEzNTdCMDE4NjVCMjUwM0MxODQ1M0QyMDhDQUMyQTk2Nzg1NDhFMzU7aXRlbT0yMDIwLTAxLTIx
+      VDEwOjQ2OjIxWicgZnByPScxMzU3QjAxODY1QjI1MDNDMTg0NTNEMjA4Q0FDMkE5Njc4NTQ4RTM1
+      Jy8+PHN1YiB1cmk9J3htcHA6anVsaWV0QGNhcHVsZXQubGl0Pztub2RlPXVybjp4bXBwOm9tZW1v
+      OjE6YnVuZGxlcztpdGVtPTMxNDE1JyBmcHI9J2U2NGRjOTE2NmRkMzRkYjY0YzkyNDdiZDUwMmM1
+      OTY5ZTM2NWE5OGYzYWE0MWM4NzI0N2QxMjA0ODdmZGQzMmYnLz48c3ViIHVyaT0neG1wcDpqdWxp
+      ZXRAY2FwdWxldC5saXQ/O25vZGU9ZXUuc2lhY3MuY29udmVyc2F0aW9ucy5heG9sb3RsLmJ1bmRs
+      ZXM6MzE0MTUnIGZwcj0nZTY0ZGM5MTY2ZGQzNGRiNjRjOTI0N2JkNTAyYzU5NjllMzY1YTk4ZjNh
+      YTQxYzg3MjQ3ZDEyMDQ4N2ZkZDMyZicvPjwvc3Vib3JkaW5hdGVzPg==
+  </signed>
+  <proof>
+      iF4EABMIAAYFAl9uMpIACgkQEs9jFvIGSKubgAD+Kf2spFV0LXIqsK75lY9xxmXI2Y+zug4QSliE
+      ShtvPHQA/0c5agEuaixJBI5iuFs1HHbpvb3UvMjrzVsosd0Z/Y+z
+  </proof>
+</ikey>
+]]></example>
+</section1>
+<section1 topic='Business Rules' anchor='rules'>
+  <p>OPTIONAL.</p>
+  <ul>
+    <li>The identity key MUST possess a valid xmpp userid attribute as described in &xep0373;</li>
+    <li>Only subkeys that belong to the user are allowed to be placed inside the &lt;subordinates/&gt; element</li>
+    <li>If more then one item is published in the ikey node, only the most recently published item is valid</li>
+    <li>ikey elements with an invalid signature by the superordinate key MUST be discarded</li>
+    <li>Implementations MUST cache recently published items and only accept those with a timestamp newer than the last cached item</li>
+    <li>Implementations MUST discard items with publication dates that lay in the future</li> 
+</section1>
+<section1 topic='Implementation Notes' anchor='impl'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Accessibility Considerations' anchor='access'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Internationalization Considerations' anchor='i18n'>
+  <p>OPTIONAL.</p>
+</section1>
+<section1 topic='Security Considerations' anchor='security'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='IANA Considerations' anchor='iana'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='XMPP Registrar Considerations' anchor='registrar'>
+  <p>REQUIRED.</p>
+</section1>
+<section1 topic='Design Considerations' anchor='design'>
+  <!-- Use this section to describe other approaches which have been considered
+  during the design of this protocol and why they have been rejected. Having
+  the result and a summary of long or complicated discussions in the document
+  itself instead of list or chat archives serves future readers. -->
+  <p>RECOMMENDED.</p>
+</section1>
+<section1 topic='XML Schema' anchor='schema'>
+  <p>REQUIRED for protocol specifications.</p>
+</section1>
+</xep>
