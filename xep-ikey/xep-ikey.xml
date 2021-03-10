@@ -72,7 +72,9 @@
     <di>
       <dt>&lt;sub/&gt; element</dt>
       <dd>An element that describes a subordinate key <tt>SK</tt>. 
-          It holds an attribute <tt>uri</tt> which points to a pubsub node or item where the key can be obtained, as well as an attribute <tt>fpr</tt> which contains the subordinate keys cryptographic fingerprint.</dd>
+          It holds an attribute <tt>type</tt> which contains the namespace of the protocol of the key,
+          an attribute <tt>uri</tt> which points to a pubsub node or item where the key can be obtained,
+          as well as an attribute <tt>fpr</tt> which contains the subordinate keys cryptographic fingerprint.</dd>
     </di>
     <di>
       <dt>&lt;proof/&gt; element</dt>
@@ -81,7 +83,7 @@
   </dl>
 </section1>
 <section1 topic='Use Cases' anchor='usecases'>
-  <p>STRONGLY RECOMMENDED.</p>
+  <p>TODO: Add 'type' below and re-calc hashes etc.</p>
   <example caption='User assembles a list of subordinate keys'><![CDATA[
 <subordinates xmlns='urn:xmpp:ikey:0' 
               jid='juliet@capulet.lit' 
@@ -131,6 +133,7 @@
     <li>ikey elements with an invalid signature by the superordinate key MUST be discarded</li>
     <li>Implementations MUST cache recently published items and only accept those with a timestamp newer than the last cached item</li>
     <li>Implementations MUST discard items with publication dates that lay in the future</li> 
+  </ul>
 </section1>
 <section1 topic='Implementation Notes' anchor='impl'>
   <p>OPTIONAL.</p>
